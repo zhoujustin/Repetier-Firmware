@@ -32,6 +32,7 @@
 extern "C" char *sbrk(int i);
 extern long bresenham_step();
 
+char HAL::virtualEeprom[EEPROM_BYTES];  
 volatile uint8_t HAL::insideTimer1=0;
 #ifndef DUE_SOFTWARE_SPI
     int spiDueDividors[] = {10,21,42,84,168,255,255};
@@ -545,29 +546,6 @@ unsigned char HAL::i2cReadNak(void)
     i2cCompleted();
     return data;
 }
-
-
-// Wait for X microseconds 
-// this could be simpler but its used inside interrupts so must be reentrant
-void HAL::microsecondsWait(uint32_t us) 
-{
-    uint32_t usStart, goal;
-
-    // get the current count
-    usStart =  TC_ReadCV(DELAY_TIMER, DELAY_TIMER_CHANNEL);
-
-    // funny math here to give good accuracy with no overflow 
-    goal = usStart + 10*us-5; //((F_CPU_TRUE / (DELAY_TIMER_PRESCALE * 100000)) * us) / 10;
-
-    // goal may have wrapped, if so wait for counter to catch up
-    if(goal < usStart) {
-        while(goal < TC_ReadCV(DELAY_TIMER, DELAY_TIMER_CHANNEL));
-    }   
-    // wait for counter to reach requested value
-    while(goal > TC_ReadCV(DELAY_TIMER, DELAY_TIMER_CHANNEL));
-}
-
-
 
 #if FEATURE_SERVO
 // may need further restrictions here in the future

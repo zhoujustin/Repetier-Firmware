@@ -180,7 +180,7 @@ UI_PAGE2(name,row1,row2);
 for 2 row displays. You can add additional pages or change the default pages like you want.
 */
 
-#if UI_ROWS>=6 && UI_DISPLAY_TYPE == DISPLAY_U8G
+#if UI_ROWS>=6 && UI_DISPLAY_TYPE == 5
 
  //graphic main status
 
@@ -188,12 +188,12 @@ for 2 row displays. You can add additional pages or change the default pages lik
    #if NUM_EXTRUDER>1
      "\xa %e1/%E1\xb0 Y:%x1",
   #else
-     "\xa -----/---\xb0 Y:%x1",
+     "             Y:%x1",
    #endif
    #if HAVE_HEATED_BED==true
      "\xe %eb/%Eb\xb0 Z:%x2",
    #else
-     "\xb -----/---\xb0 Z:%x2",
+     "Fan %Fs%%%     Z:%x2",
    #endif
    "Mul:%om", "Buf:%oB", "%os");
 
@@ -366,7 +366,7 @@ UI_MENU_ACTIONSELECTOR(ui_menu_go_zfast_notest,UI_TEXT_Z_POS_FAST,ui_menu_zpos_f
 #define UI_SPEED_Z_NOTEST ,&ui_menu_go_zpos_notest
 #endif
 
-#if DRIVE_SYSTEM != DELTA     //Positioning menu for non-delta
+#if DRIVE_SYSTEM != 3     //Positioning menu for non-delta
 #define UI_MENU_POSITIONS {UI_MENU_ADDCONDBACK &ui_menu_home_all,&ui_menu_home_x,&ui_menu_home_y,&ui_menu_home_z UI_SPEED_X UI_SPEED_Y UI_SPEED_Z ,&ui_menu_go_epos}
 UI_MENU(ui_menu_positions,UI_MENU_POSITIONS,5 + 3 * UI_SPEED + UI_MENU_BACKCNT);
 #else                   //Positioning menu for delta (removes individual x,y,z homing)
@@ -382,7 +382,7 @@ UI_MENU(ui_menu_delta,UI_MENU_DELTA,2 + UI_SPEED + UI_MENU_BACKCNT);
 #endif
 
 // **** Bed leveling menu
-#if SOFTWARE_LEVELING
+#ifdef SOFTWARE_LEVELING
 UI_MENU_ACTIONCOMMAND(ui_menu_set_p1,UI_TEXT_SET_P1,UI_ACTION_SET_P1);
 UI_MENU_ACTIONCOMMAND(ui_menu_set_p2,UI_TEXT_SET_P2,UI_ACTION_SET_P2);
 UI_MENU_ACTIONCOMMAND(ui_menu_set_p3,UI_TEXT_SET_P3,UI_ACTION_SET_P3);
@@ -653,7 +653,7 @@ UI_MENU_ACTION2C(ui_menu_eeprom_loaded, UI_ACTION_DUMMY, UI_TEXT_EEPROM_LOADED);
 #define UI_MENU_EEPROM_COND
 #define UI_MENU_EEPROM_CNT 0
 #endif
-#if SOFTWARE_LEVELING
+#ifdef SOFTWARE_LEVELING
 #define UI_MENU_SL_COND ,&ui_menu_conf_level
 #define UI_MENU_SL_CNT 1
 UI_MENU_SUBMENU(ui_menu_conf_level, UI_TEXT_LEVEL, ui_menu_level);

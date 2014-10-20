@@ -477,12 +477,12 @@ STEPPER_CURRENT_CONTROL
 #define TEMP_0_PIN         13   // ANALOG NUMBERING
 #define TEMP_1_PIN         14   // BED , ANALOG NUMBERING
 #define TEMP_2_PIN         15
-#define TEMP_4_PIN         12   // ANALOG NUMBERING
-#define TEMP_5_PIN         11   // ANALOG NUMBERING
-#define TEMP_6_PIN         10
+#define TEMP_3_PIN         12   // ANALOG NUMBERING
+#define TEMP_4_PIN         11   // ANALOG NUMBERING
+#define TEMP_5_PIN         10
 
-#define TEMP_7_PIN         4   // Thermocouple 1
-#define TEMP_8_PIN         5   // Thermocouple 2
+#define TEMP_6_PIN         4   // Thermocouple 1
+#define TEMP_7_PIN         5   // Thermocouple 2
 
 
 #define E1_PINS ORIG_E1_STEP_PIN,ORIG_E1_DIR_PIN,ORIG_E1_ENABLE_PIN,
@@ -606,7 +606,7 @@ STEPPER_CURRENT_CONTROL
 #define LED_PIN            13
 
 #define ORIG_FAN_PIN            7
-#define FAN1 PIN  8 // (e.g. useful for electronics fan or light on/off) on PIN 8
+#define ORIG_FAN2_PIN     8 // (e.g. useful for electronics fan or light on/off) on PIN 8
 
 #define PS_ON_PIN          45
 
@@ -2239,11 +2239,25 @@ S3(ext)=9
 #define E2_DIR_PIN ORIG_E2_DIR_PIN
 #define E2_ENABLE_PIN ORIG_E2_ENABLE_PIN
 
+#define E3_STEP_PIN ORIG_E3_STEP_PIN
+#define E3_DIR_PIN ORIG_E3_DIR_PIN
+#define E3_ENABLE_PIN ORIG_E3_ENABLE_PIN
+
+#define E4_STEP_PIN ORIG_E4_STEP_PIN
+#define E4_DIR_PIN ORIG_E4_DIR_PIN
+#define E4_ENABLE_PIN ORIG_E4_ENABLE_PIN
+
+#define E5_STEP_PIN ORIG_E5_STEP_PIN
+#define E5_DIR_PIN ORIG_E5_DIR_PIN
+#define E5_ENABLE_PIN ORIG_E5_ENABLE_PIN
+
 #define FAN_PIN ORIG_FAN_PIN
 #define FAN2_PIN ORIG_FAN2_PIN
 
 
-#define SENSITIVE_PINS {0, 1, X_STEP_PIN, X_DIR_PIN, X_ENABLE_PIN, ORIG_X_MIN_PIN, X_MAX_PIN, Y_STEP_PIN, Y_DIR_PIN, Y_ENABLE_PIN, Y_MIN_PIN, Y_MAX_PIN, Z_STEP_PIN, Z_DIR_PIN, Z_ENABLE_PIN, Z_MIN_PIN, Z_MAX_PIN, LED_PIN, PS_ON_PIN, \
-                        HEATER_0_PIN, HEATER_1_PIN, ORIG_FAN_PIN, E0_PINS E1_PINS E2_PINS TEMP_0_PIN, TEMP_1_PIN,SDSS }
+#define SENSITIVE_PINS {0, 1, ORIG_X_STEP_PIN, ORIG_X_DIR_PIN, ORIG_X_ENABLE_PIN, ORIG_X_MIN_PIN, ORIG_X_MAX_PIN, \
+        ORIG_Y_STEP_PIN, ORIG_Y_DIR_PIN, ORIG_Y_ENABLE_PIN, ORIG_Y_MIN_PIN, ORIG_Y_MAX_PIN, ORIG_Z_STEP_PIN,\
+        ORIG_Z_DIR_PIN, ORIG_Z_ENABLE_PIN, ORIG_Z_MIN_PIN, ORIG_Z_MAX_PIN, LED_PIN, PS_ON_PIN, \
+        HEATER_0_PIN, HEATER_1_PIN, ORIG_FAN_PIN, E0_PINS E1_PINS E2_PINS TEMP_0_PIN, TEMP_1_PIN,SDSS }
 #endif
 

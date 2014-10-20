@@ -41,6 +41,7 @@
 // which would otherwise have problems with int overflow.
 #define F_CPU       21000000        // should be factor of F_CPU_TRUE
 #define F_CPU_TRUE  84000000        // actual CPU clock frequency
+#define EEPROM_BYTES 4096  // bytes of eeprom we simulate
 
 // another hack to keep AVR code happy (i.e. SdFat.cpp)
 #define SPR0    0
@@ -151,9 +152,9 @@ typedef char prog_char;
 #define LOW         0
 #define HIGH        1
 
-#define BEGIN_INTERRUPT_PROTECTED __disable_irq(); //noInterrupts();
-#define END_INTERRUPT_PROTECTED __enable_irq(); //interrupts();
-#define ESCAPE_INTERRUPT_PROTECTED  __enable_irq(); //interrupts();
+#define BEGIN_INTERRUPT_PROTECTED {uint32_t oldInt = __get_PRIMASK();__disable_irq();
+#define END_INTERRUPT_PROTECTED __set_PRIMASK(oldInt);} //__enable_irq();
+#define ESCAPE_INTERRUPT_PROTECTED  __set_PRIMASK(oldInt);//__enable_irq();
 
 #define EEPROM_OFFSET               0
 #define SECONDS_TO_TICKS(s) (unsigned long)(s*(float)F_CPU)
@@ -214,6 +215,10 @@ union eeval_t {
 class HAL
 {
 public:
+    // we use ram instead of eeprom, so reads are faster and safer. Writes store in real eeprom as well
+    // as long as hal eeprom functions are used.
+    static char virtualEeprom[EEPROM_BYTES];     
+    
     HAL();
     virtual ~HAL();
 
@@ -230,6 +235,14 @@ public:
         TC_Configure(DELAY_TIMER, DELAY_TIMER_CHANNEL, TC_CMR_WAVSEL_UP | 
                      TC_CMR_WAVE | DELAY_TIMER_CLOCK);
         TC_Start(DELAY_TIMER, DELAY_TIMER_CHANNEL);
+#if EEPROM_AVAILABLE
+        // Copy eeprom to ram for faster access
+        int i,n = EEPROM_BYTES;
+        for(i=0;i<EEPROM_BYTES;i+=4) {
+          eeval_t v = eprGetValue(i, 4);
+          *(int*)(&virtualEeprom[i]) = v.i;
+        }
+#endif
     }
 
     // return val'val
@@ -272,9 +285,15 @@ public:
     static long CPUDivU2(speed_t divisor) {
       return F_CPU/divisor;
     }
-    static inline void delayMicroseconds(unsigned int delayUs)
+    static inline void delayMicroseconds(uint32_t usec)
     {
-        microsecondsWait(delayUs);
+        uint32_t n = usec * (F_CPU_TRUE / 3000000);
+        asm volatile(
+            "L2_%=_delayMicroseconds:"       "\n\t"
+            "subs   %0, #1"                 "\n\t"
+            "bge    L2_%=_delayMicroseconds" "\n"
+            : "+r" (n) :  
+        );
     }
     static inline void delayMilliseconds(unsigned int delayMs)
     {
@@ -310,56 +329,66 @@ public:
         eeval_t v;
         v.b[0] = value;
         eprBurnValue(pos, 1, v);
+        *(uint8_t*)&virtualEeprom[pos] = value;
     }
     static inline void eprSetInt16(unsigned int pos,int value)
     {
         eeval_t v;
         v.s = value;
         eprBurnValue(pos, 2, v);
+        *(uint16_t*)&virtualEeprom[pos] = value;
     }
     static inline void eprSetInt32(unsigned int pos,int value)
     {
         eeval_t v;
         v.i = value;
         eprBurnValue(pos, 4, v);
+        *(int*)&virtualEeprom[pos] = value;
     }
     static inline void eprSetLong(unsigned int pos,long value)
     {
         eeval_t v;
         v.l = value;
         eprBurnValue(pos, sizeof(long), v);
+        *(long*)&virtualEeprom[pos] = value;
     }
     static inline void eprSetFloat(unsigned int pos,float value)
     {
         eeval_t v;
         v.f = value;
         eprBurnValue(pos, sizeof(float), v);
+        *(float*)&virtualEeprom[pos] = value;
     }
     static inline uint8_t eprGetByte(unsigned int pos)
     {
-        eeval_t v = eprGetValue(pos,1);
-        return v.b[0];
+        return *(uint8_t*)&virtualEeprom[pos];
+        //eeval_t v = eprGetValue(pos,1);
+        //return v.b[0];
     }
-    static inline int eprGetInt16(unsigned int pos)
+    static inline int16_t eprGetInt16(unsigned int pos)
     {
-        eeval_t v;
-        v.i = 0;
-        v = eprGetValue(pos, 2);
-        return v.i;
+        return *(int16_t*)&virtualEeprom[pos];
+        //eeval_t v;
+        //v.i = 0;
+        //v = eprGetValue(pos, 2);
+        //return v.i;
     }
     static inline int eprGetInt32(unsigned int pos)
     {
-        eeval_t v = eprGetValue(pos, 4);
-        return v.i;
+        return *(int*)&virtualEeprom[pos];
+        //eeval_t v = eprGetValue(pos, 4);
+        //return v.i;
     }
     static inline long eprGetLong(unsigned int pos)
     {
-        eeval_t v = eprGetValue(pos, sizeof(long));
-        return v.l;
+        return *(long*)&virtualEeprom[pos];
+        //eeval_t v = eprGetValue(pos, sizeof(long));
+        //return v.l;
     }
     static inline float eprGetFloat(unsigned int pos) {
-        eeval_t v = eprGetValue(pos, sizeof(float));
-        return v.f;
+        return *(float*)&virtualEeprom[pos];
+        //eeval_t v = eprGetValue(pos, sizeof(float));
+        //return v.f;
     }
 
     // Write any data type to EEPROM
@@ -406,11 +435,11 @@ public:
 
     static inline void allowInterrupts()
     {
-//        __enable_irq();
+        __enable_irq();
     }
     static inline void forbidInterrupts()
     {
-//        __disable_irq();
+        __disable_irq();
     }
     static inline unsigned long timeInMilliseconds()
     {
@@ -585,7 +614,6 @@ public:
 #if ANALOG_INPUTS>0
     static void analogStart(void);
 #endif
-    static void microsecondsWait(uint32_t us);
     static volatile uint8_t insideTimer1;
         
 protected:
